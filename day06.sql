@@ -548,7 +548,7 @@ SELECT last_day(sysdate) "이 달의 마지막 날"
   FROM dual
 ;  
 
--------- 4. ROUDN, TRUNC : 날짜에 대한 반올림, 버림 연산
+-------- 4. ROUND, TRUNC : 날짜에 대한 반올림, 버림 연산
 SELECT round(sysdate) "현재 시간에서 반올림"
   FROM dual
 ;  
