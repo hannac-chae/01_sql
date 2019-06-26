@@ -655,7 +655,7 @@ SELECT e.JOB
  GROUP BY e.JOB
 ;
 
--- b) job 별 급여의 합에서 단위을 구함
+-- b) job 별 급여의 합에서 단위를 구함
 SELECT e.JOB
      , TRUNC(SUM(e.SAL), -3) "급여 단위"
   FROM emp e
