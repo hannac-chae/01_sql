@@ -198,8 +198,248 @@ SELECT e.empno
   FROM emp e JOIN salgrade s ON (e.sal BETWEEN s.losal AND s.hisal)
 ;
 
+-- OUTER JOIN 예를 만들기 위해 부서번호가 NULL 인 데이터 생성
+/* 
+INSERT INTO "SCOTT"."EMP" (EMPNO, ENAME, JOB, MGR, HIREDATE, SAL) VALUES ('7777', 'JJ', 'CLERK', '7902', TO_DATE('2019-06-27 13:09:07', 'YYYY-MM-DD HH24:MI:SS'), '900')
+INSERT INTO "SCOTT"."EMP" (EMPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM) VALUES ('8888', 'J_JAMES', 'SALESMAN', '7698', TO_DATE('2019-06-07 13:10:37', 'YYYY-MM-DD HH24:MI:SS'), '1250', '200')
+
+COMMIT;
+*/
+
+-- 6) OUTER JOIN : 조인 대상 테이블에서 공통 컬럼에 NULL 값인 데이터도
+--                 출력을 원할 때 사용하는 조인 기법
+
+--    연산자 : (+), LEFT OUTER JOIN, RIGHT OUTER JOIN
+
+----- 1. (+) : 오라클에서만 사용하는 OUTER JOIN 연산자
+--             EQUI-JOIN 조건에 NULL 값 출력을 원하는 쪽에 붙여서 사용
+
+-- 직원의 정보를 부서명과 함께 조회(일반 EQUI-JOIN)
+SELECT e.empno
+     , e.ename
+     , d.dname
+  FROM emp e
+     , dept d
+ WHERE e.deptno = d.deptno
+;
+
+-- JJ, J_JAMES 의 e.deptno 는 NULL 이므로 dept 테이블에 일치하는 값이 없으므로
+-- 조인 결과로 두 직원이 조회되지 않는다.
+
+-- 부서 배치가 되지 않은 직원도 모두 출력은 하고 싶다.
+-- 그러려면 dept 테이블쪽의 데이터가 NULL 이어도 추가 출력이 필요.
+-- 추가 출력을 원하는 쪽에 (+) 연산자를 붙인다.
+SELECT e.empno
+     , e.ename
+     , d.dname
+  FROM emp e
+     , dept d
+ WHERE e.deptno = d.deptno(+)
+; 
+/*
+EMPNO,  ENAME,  DNAME
+------------------------------
+7782	CLARK	ACCOUNTING
+7839	KING	ACCOUNTING
+7934	MILLER	ACCOUNTING
+7369	SMITH	RESEARCH
+7566	JONES	RESEARCH
+7902	FORD	RESEARCH
+7499	ALLEN	SALES
+7521	WARD	SALES
+7654	MARTIN	SALES
+7698	BLAKE	SALES
+7844	TURNER	SALES
+7900	JAMES	SALES
+7777	JJ	
+8888	J_JAMES	
+*/
+-- (+) 연산자는 오른쪽에 붙이 이는 NULL 상태로 출력될 테이블을 결정짓는다.
+-- 전체 데이터 기준삼는 테이블이 왼쪽이기 때문에 
+-- LEFT OUTER JOIN 이 발생함.
 
 
+----- 2. LEFT OUTER JOIN ~ ON
+SELECT e.empno
+     , e.ename
+     , d.dname
+  FROM emp e LEFT OUTER JOIN dept d ON (e.deptno = d.deptno)
+;
+-- ON 절에 쓰는 조인 조건은 EQUI-JOIN 과 동일하지만
+-- LEFT OUTER JOIN 연산자에 의해
+-- 이 연산자 왼쪽에 위치한 테이블의 모든 데이터는 출력을 보장받는다.
+-- 결과는 (+) 연산자를 오른쪽에 붙인 결과와 동일
+
+
+
+---- 3. RIGHT OUTER JOIN 
+
+-- 문제) 직원이 아직 아무도 배치되지 않은 부서가 있어도 
+--       모든 부서가 출력되길 바라면
+
+-- (+) 연산자로 해결 : '=' 연산자 오른쪽에 쓴다
+SELECT e.empno
+     , e.ename
+     , d.dname
+  FROM emp e
+     , dept d
+ WHERE e.deptno(+) = d.deptno
+; 
+/*
+7839	KING	ACCOUNTING
+7782	CLARK	ACCOUNTING
+7934	MILLER	ACCOUNTING
+7902	FORD	RESEARCH
+7369	SMITH	RESEARCH
+7566	JONES	RESEARCH
+7900	JAMES	SALES
+7844	TURNER	SALES
+7654	MARTIN	SALES
+7521	WARD	SALES
+7499	ALLEN	SALES
+7698	BLAKE	SALES
+		        OPERATIONS
+*/
+
+-- RIGHT OUTER JOIN ~ ON
+SELECT e.empno
+     , e.ename
+     , d.dname
+  FROM emp e RIGHT OUTER JOIN dept d ON (e.deptno = d.deptno)
+; 
+-- ON 절에는 EQUI-JOIN 과 동일한 조인 조건을 쓰고
+-- RIGHT OUTER JOIN 연산자에 의해 오른쪽 테이블인 dept 테이블의
+-- 데이터는 모두 출력을 보장받는다.
+
+
+----- 4. FULL OUTER JOIN :
+
+-- 문제) 부서 배치가 안된 직원도 조회하고 싶고
+--       직원이 아무도 없는 부서도 조회하고 싶을 때
+--       즉, 조인 대상 양쪽 테이블에 존재하는 NULL 값들을 
+--       모두 한번에 조회하려면?
+
+-- (+) 연산자로는 불가능
+SELECT e.empno
+     , e.ename
+     , d.dname
+  FROM emp e
+     , dept d
+ WHERE e.deptno(+) = d.deptno(+)
+; 
+/*
+ORA-01468: outer-join된 테이블은 1개만 지정할 수 있습니다
+01468. 00000 -  "a predicate may reference only one outer-joined table"
+*/
+
+-- FULL OUTER JOIN ~ ON 연산자로 지원
+SELECT e.empno
+     , e.ename
+     , d.dname
+  FROM emp e FULL OUTER JOIN dept d ON e.deptno = d.deptno
+; 
+/*
+EMPNO,  ENAME,  DNAME
+---------------------------
+7777	JJ	
+8888	J_JAMES	
+7369	SMITH	RESEARCH
+7499	ALLEN	SALES
+7521	WARD	SALES
+7566	JONES	RESEARCH
+7654	MARTIN	SALES
+7698	BLAKE	SALES
+7782	CLARK	ACCOUNTING
+7839	KING	ACCOUNTING
+7844	TURNER	SALES
+7900	JAMES	SALES
+7902	FORD	RESEARCH
+7934	MILLER	ACCOUNTING
+		        OPERATIONS
+*/
+
+-- 문제) 직원이 아무도 없는 부서를 모두 조회하고 싶다.
+--       dept 테이블을 왼쪽에 배치해서 조인을 거는 경우
+--       LEFT OUTER JOIN 으로 해결하면 된다.
+SELECT d.dname
+     , e.ename
+  FROM dept d
+     , emp e
+ WHERE d.deptno = e.deptno(+)     
+;     
+
+----- 5. SELF JOIN
+--       : 한 테이블 내에서 자기 자신의 컬럼끼리 연결하여 
+--         논리적인 새 행을 만드는 기법
+
+-- 문제) emp 테이블에 직원 정보를 조회할 때
+--       그 직원의 상사(매니저) 이름을 같이 조회하고 싶다.
+
+SELECT e.empno  "사번"
+     , e.ename  "이름"
+     , e.mgr    "상사 사번"
+     , e1.ename "상사 이름"
+  FROM emp e
+     , emp e1
+ WHERE e.mgr = e1.empno    
+;     
+/*
+사번,   이름,   상사 사번, 상사 이름
+-----------------------------------
+7902	FORD	7566	JONES
+8888	J_JAMES	7698	BLAKE
+7654	MARTIN	7698	BLAKE
+7900	JAMES	7698	BLAKE
+7844	TURNER	7698	BLAKE
+7521	WARD	7698	BLAKE
+7499	ALLEN	7698	BLAKE
+7934	MILLER	7782	CLARK
+7698	BLAKE	7839	KING
+7566	JONES	7839	KING
+7782	CLARK	7839	KING
+7777	JJ	    7902	FORD
+7369	SMITH	7902	FORD
+*/
+-- 위의 결과는 SELF-JOIN  이면서 EQUI-JOIN 이기때문에
+-- 상사가 없는 직원은 조회되지 않는다.
+-- KING 은 조회되지 않음.
+
+-- 상사가 없는 직원도 조회하고 싶으면
+-- a) e테이블 기준으로 모든 데이터가 조회되어야 함
+-- b) (+) 기호를 오른쪽에 붙이거나
+SELECT e.empno  "사번"
+     , e.ename  "이름"
+     , e.mgr    "상사 사번"
+     , e1.ename "상사 이름"
+  FROM emp e
+     , emp e1
+ WHERE e.mgr = e1.empno(+)
+;     
+-- c) LEFT OUTER JOIN ~ ON 을 사용
+SELECT e.empno  "사번"
+     , e.ename  "이름"
+     , e.mgr    "상사 사번"
+     , e1.ename "상사 이름"
+  FROM emp e LEFT OUTER JOIN emp e1 ON e.mgr = e1.empno
+;  
+/*
+사번,   이름,   상사 사번, 상사 이름
+------------------------------
+7902	FORD	7566	JONES
+8888	J_JAMES	7698	BLAKE
+7499	ALLEN	7698	BLAKE
+7521	WARD	7698	BLAKE
+7654	MARTIN	7698	BLAKE
+7844	TURNER	7698	BLAKE
+7900	JAMES	7698	BLAKE
+7934	MILLER	7782	CLARK
+7566	JONES	7839	KING
+7698	BLAKE	7839	KING
+7782	CLARK	7839	KING
+7777	JJ	    7902	FORD
+7369	SMITH	7902	FORD
+7839	KING		
+*/
 
 
 
