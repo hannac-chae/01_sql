@@ -525,15 +525,49 @@ SELECT e.empno  사번
 7499	ALLEN	SALESMAN	BLAKE	SALES	    CHICAGO
 */
 -- 상사가 없거나, 부서가 배정되지 않은 직원도 모두 출력하시오.
--- (+) 연산자로 해결
+-- 1.1 ) (+) 연산자로 해결
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.job    직무
+     , e1.ename 상사이름
+     , d.dname  부서명
+     , d.loc    부서위치
+  FROM emp e
+     , emp e1
+     , dept d
+ WHERE e.mgr = e1.empno(+)
+   AND e.deptno = d.deptno(+)
+ ORDER BY d.deptno
+;
+-- 1.2) LEFT OUTER JOIN ~ ON 으로 해결
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.job    직무
+     , e1.ename 상사이름
+     , d.dname  부서명
+     , d.loc    부서위치
+  FROM emp e LEFT JOIN emp e1 ON (e.mgr = e1.empno)
+             LEFT JOIN dept d ON (e.deptno = d.deptno)
+ ORDER BY d.deptno   
+;
 
--- LEFT OUTER JOIN ~ ON 으로 해결
-
-
--- 상사가 없거나, 부서가 배정되지 않은 직원도 모두 출력하며
+-- 1.3) 상사가 없거나, 부서가 배정되지 않은 직원도 모두 출력하며
 -- 상사가 없을 때 상사이름 대신  '-' 가
 -- 부서가 배정되지 않았을 때 부서명, 부서위치 대신 
 -- '-' 가 출력되도록 하시오
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.job    직무
+     , NVL(e1.ename, '-') 상사이름
+     , NVL(d.dname, '-')  부서명
+     , NVL(d.loc, '-')    부서위치
+  FROM emp e
+     , emp e1
+     , dept d
+ WHERE e.mgr = e1.empno(+)
+   AND e.deptno = d.deptno(+)
+ ORDER BY d.deptno
+;
 
 -- 2. 사번, 이름, 급여, 급여등급, 부서명, 부서위치 를 조회하시오.
 --    emp e, dept d, salgrade s
@@ -578,17 +612,55 @@ SELECT e.empno  사번
 
 -- 부서가 배정되지 않은 직원도 모두 출력하시오
 -- 2.1) (+) 연산자로 해결
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.sal    급여
+     , s.grade  급여등급
+     , d.dname  부서명
+     , d.loc    부서위치
+  FROM emp e
+     , dept d
+     , salgrade s
+ WHERE e.deptno = d.deptno(+)
+   AND e.sal BETWEEN s.losal AND s.hisal
+;
 
 -- 2.2) LEFT OUTER JOIN ~ ON 으로 해결
-
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.sal    급여
+     , s.grade  급여등급
+     , d.dname  부서명
+     , d.loc    부서위치
+  FROM emp e LEFT JOIN dept d ON (e.deptno = d.deptno)
+             JOIN salgrade s  ON (e.sal BETWEEN s.losal AND s.hisal)
+;
 
 -- 2.3) 부서가 배정되지 않은 직원은 
 --      부서명, 부서위치 대신 '-' 이 출력되도록 하시오.
-
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.sal    급여
+     , s.grade  급여등급
+     , NVL(d.dname, '-')  부서명
+     , NVL(d.loc, '-')    부서위치
+  FROM emp e
+     , dept d
+     , salgrade s
+ WHERE e.deptno = d.deptno(+)
+   AND e.sal BETWEEN s.losal AND s.hisal
+;
 
 -- 2.4) 부서별 소속 인원을 출력하시오.
 --      이때 부서 명으로 출력하시오.
 --      또한, 직원이 없는 부서도 출력하시오.
+SELECT d.dname       "부서 명"
+     , COUNT(e.empno)"인원(명)"
+  FROM emp e
+     , dept d
+ WHERE e.deptno(+) = d.deptno
+ GROUP BY d.dname
+;
 
 /* 실행결과 다음과 같이 나옵니다.
 
@@ -603,6 +675,12 @@ OPERATIONS	0
 -- 2.5) 2.4의 결과에 부서가 미배정된 인원까지 출력하시오.
 --      이 때, 부서가 없는 직원은 '부서 미배정'으로 출력하시오.
 
+SELECT NVL(d.dname, '부서 미배정') "부서 명"
+     , COUNT(e.empno)"인원(명)"
+  FROM emp e FULL OUTER JOIN dept d ON (e.deptno = d.deptno)
+ GROUP BY d.dname
+ ORDER BY d.dname
+;
 /* 실행결과 다음과 같이 나옵니다.
 부서 명     인원(명)
 -----------------
