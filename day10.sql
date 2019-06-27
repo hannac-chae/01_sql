@@ -438,7 +438,132 @@ SELECT e.empno  "사번"
 7782	CLARK	7839	KING
 7777	JJ	    7902	FORD
 7369	SMITH	7902	FORD
-7839	KING		
+7839	KING		         
+*/
+
+-- 부하 직원이 없는 직원들 조회
+SELECT e.empno  "사번"
+     , e.ename  "이름"
+     , e.mgr    "상사 사번"
+     , e1.ename "상사 이름"
+  FROM emp e
+     , emp e1
+ WHERE e.mgr(+) = e1.empno
+ ORDER BY "사번" DESC 
+;
+/*
+사번, 이름, 상사 사번, 상사 이름
+----------------------------------
+                        SMITH
+                        J_JAMES
+                        WARD
+                        ALLEN
+                        MILLER
+                        JAMES
+                        TURNER
+                        JJ
+                        MARTIN
+8888	J_JAMES	7698	BLAKE
+7934	MILLER	7782	CLARK
+7902	FORD	7566	JONES
+7900	JAMES	7698	BLAKE
+7844	TURNER	7698	BLAKE
+7782	CLARK	7839	KING
+7777	JJ	7902	FORD
+7698	BLAKE	7839	KING
+7654	MARTIN	7698	BLAKE
+*/
+-- RIGHT OUTER JOIN ~ ON 으로 변경
+SELECT e.empno  "사번"
+     , e.ename  "이름"
+     , e.mgr    "상사 사번"
+     , e1.ename "상사 이름"
+  FROM emp e RIGHT OUTER JOIN emp e1 ON (e.mgr = e1.empno)
+ ORDER BY "사번" DESC 
+;
+
+-- 수업중 실습 문제)
+-- 1. 사번, 이름, 직무, 상사이름, 부서명, 부서위치 를 조회하시오.
+--    emp e, emp e1, dept d
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.job    직무
+     , e1.ename 상사이름
+     , d.dname  부서명
+     , d.loc    부서위치
+  FROM emp e
+     , emp e1
+     , dept d
+ WHERE e.mgr = e1.empno
+   AND e.deptno = d.deptno
+ ORDER BY d.deptno   
+;     
+-- 위의 구문을 JOIN ~ ON 으로 변경
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.job    직무
+     , e1.ename 상사이름
+     , d.dname  부서명
+     , d.loc    부서위치
+  FROM emp e JOIN emp e1 ON (e.mgr = e1.empno)
+             JOIN dept d ON (e.deptno = d.deptno)
+ ORDER BY d.deptno   
+;
+/*
+사번,   이름,   직무,     상사이름, 부서명,      부서위치
+--------------------------------------------------------
+7782	CLARK	MANAGER	    KING	ACCOUNTING	NEW YORK
+7934	MILLER	CLERK	    CLARK	ACCOUNTING	NEW YORK
+7902	FORD	ANALYST	    JONES	RESEARCH	DALLAS
+7566	JONES	MANAGER	    KING	RESEARCH	DALLAS
+7369	SMITH	CLERK	    FORD	RESEARCH	DALLAS
+7698	BLAKE	MANAGER	    KING	SALES	    CHICAGO
+7521	WARD	SALESMAN	BLAKE	SALES	    CHICAGO
+7654	MARTIN	SALESMAN	BLAKE	SALES	    CHICAGO
+7844	TURNER	SALESMAN	BLAKE	SALES	    CHICAGO
+7900	JAMES	CLERK	    BLAKE	SALES	    CHICAGO
+7499	ALLEN	SALESMAN	BLAKE	SALES	    CHICAGO
+*/
+
+-- 2. 사번, 이름, 급여, 급여등급, 부서명, 부서위치 를 조회하시오.
+--    emp e, dept d, salgrade s
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.sal    급여
+     , s.grade  급여등급
+     , d.dname  부서명
+     , d.loc    부서위치
+  FROM emp e
+     , dept d
+     , salgrade s
+ WHERE e.sal BETWEEN s.losal AND s.hisal
+   AND e.deptno = d.deptno
+;
+-- 위의 구문을 JOIN ~ ON 으로 변경
+SELECT e.empno  사번
+     , e.ename  이름
+     , e.sal    급여
+     , s.grade  급여등급
+     , d.dname  부서명
+     , d.loc    부서위치
+  FROM emp e JOIN dept d     ON (e.deptno = d.deptno)
+             JOIN salgrade s ON (e.sal BETWEEN s.losal AND s.hisal)
+;
+/*
+사번, 이름, 급여, 급여등급, 부서명, 부서위치
+-------------------------------------------------
+7839	KING	5000	5	ACCOUNTING	NEW YORK
+7902	FORD	3000	4	RESEARCH	DALLAS
+7566	JONES	2975	4	RESEARCH	DALLAS
+7698	BLAKE	2850	4	SALES	CHICAGO
+7782	CLARK	2450	4	ACCOUNTING	NEW YORK
+7499	ALLEN	1600	3	SALES	CHICAGO
+7844	TURNER	1500	3	SALES	CHICAGO
+7934	MILLER	1300	2	ACCOUNTING	NEW YORK
+7654	MARTIN	1250	2	SALES	CHICAGO
+7521	WARD	1250	2	SALES	CHICAGO
+7900	JAMES	950	1	SALES	CHICAGO
+7369	SMITH	800	1	RESEARCH	DALLAS
 */
 
 
