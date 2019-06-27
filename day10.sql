@@ -524,6 +524,16 @@ SELECT e.empno  사번
 7900	JAMES	CLERK	    BLAKE	SALES	    CHICAGO
 7499	ALLEN	SALESMAN	BLAKE	SALES	    CHICAGO
 */
+-- 상사가 없거나, 부서가 배정되지 않은 직원도 모두 출력하시오.
+-- (+) 연산자로 해결
+
+-- LEFT OUTER JOIN ~ ON 으로 해결
+
+
+-- 상사가 없거나, 부서가 배정되지 않은 직원도 모두 출력하며
+-- 상사가 없을 때 상사이름 대신  '-' 가
+-- 부서가 배정되지 않았을 때 부서명, 부서위치 대신 
+-- '-' 가 출력되도록 하시오
 
 -- 2. 사번, 이름, 급여, 급여등급, 부서명, 부서위치 를 조회하시오.
 --    emp e, dept d, salgrade s
@@ -566,7 +576,14 @@ SELECT e.empno  사번
 7369	SMITH	800	1	RESEARCH	DALLAS
 */
 
+-- 부서가 배정되지 않은 직원도 모두 출력하시오
+-- (+) 연산자로 해결
 
+-- LEFT OUTER JOIN ~ ON 으로 해결
+
+
+-- 부서가 배정되지 않은 직원은 
+-- 부서명, 부서위치 대신 '-' 이 출력되도록 하시오.
 
 
 
