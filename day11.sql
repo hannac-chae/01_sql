@@ -129,7 +129,7 @@ SELECT TO_NUMBER(TO_CHAR(e.hiredate, 'FMMM')) "입사월"
  ORDER BY "입사월"
 ;  
 
--- d) (c) 의 결과를 FROM 절에 통으로 들어간 후 '월'을 붙여야 함.
+-- d) (c) 의 결과가 FROM 절에 통으로 들어간 후 '월'을 붙여야 함.
 SELECT a.month || '월' "입사월"
      , a.cnt           "인원(명)"
   FROM (SELECT TO_NUMBER(TO_CHAR(e.hiredate, 'FMMM')) month
