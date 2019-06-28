@@ -26,6 +26,9 @@ ALTER SESSION
 -- 4. WHERE
 -- ...
 -- JOIN, sub-query 까지
+
+--  파일명 : day11_HR이름.sql 작성 후 이메일로 전송!
+
   
 
 
