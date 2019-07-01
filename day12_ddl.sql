@@ -248,5 +248,58 @@ PK_MEMBER	74882	INDEX
 MEMBER	    74881	TABLE
 */
 
+-- 테이블 생성 기법중 이미 존재하는 테이블로부터 복사 생성
+-- 테이블 구조 복사 생성 구문
+CREATE TABLE 테이블이름
+AS
+SELECT 컬럼이름...
+  FROM 복사대상테이블
+ WHERE 항상 거짓이 되는 조건
+;
+
+-- 예) 앞서 생성한 member 테이블에서 복사 : new_member
+CREATE TABLE new_member
+AS
+SELECT m.*
+  FROM member m
+ WHERE 1 = 2 -- 항상 거짓이 되는 조건
+;  
+-- PK 설정은 복사되지 않고 테이블 구조(조회된 컬럼만) 복사됨
+
+-- Table NEW_MEMBER이(가) 생성되었습니다.
+-- new_member 테이블의 구조를 조회
+DESC new_member;
+/*
+
+이름          널?       유형           
+----------- -------- ------------ 
+MEMBER_ID            VARCHAR2(4)  
+MEMBER_NAME NOT NULL VARCHAR2(15) 
+PHONE                VARCHAR2(4)  
+REG_DATE             DATE         
+ADDRESS              VARCHAR2(30) 
+MAJOR                VARCHAR2(50) 
+BIRTH_MONTH          NUMBER(2)    
+GENDER               VARCHAR2(1) 
+*/
+
+
+/*
+-- member 테이블에 데이터 추가
+*/
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M001', '박성협', '9155', '수원시', '행정', '3', 'M')
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M002', '오진오', '1418', '군포시', '일어', '1', 'M')
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M003', '이병현', '0186', '천안시', '컴공', '3', 'M')
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M004', '김문정', '1392', '청주시', '일어', '3', 'F')
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M005', '송지환', '0322', '안양시', '제약', '3', 'F')
+
+
+
+
+
+
+
+
+
 
 
