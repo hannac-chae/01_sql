@@ -68,6 +68,7 @@ CREATE TABLE 테이블이름
 
 -- 1. 테이블 생성 구문 : member
 ;
+DROP TABLE member;
 CREATE TABLE member
 (  member_id    VARCHAR2(4)     PRIMARY KEY
  , member_name  VARCHAR2(15)    NOT NULL
@@ -292,9 +293,37 @@ INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIR
 INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M003', '이병현', '0186', '천안시', '컴공', '3', 'M')
 INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M004', '김문정', '1392', '청주시', '일어', '3', 'F')
 INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M005', '송지환', '0322', '안양시', '제약', '3', 'F')
+COMMIT;
 
+-- 3월생의 정보만 복사해서 새 테이블을 생성
+CREATE TABLE march_member
+AS
+SELECT m.*
+  FROM member m
+ WHERE m.birth_month = 3  
+;  
+-- Table MARCH_MEMBER이(가) 생성되었습니다.
 
+-- 복사하여 테이블 생성시 참이 될 수 있는 조건을 주면
+-- 해당 조건을 만족하는 행의 데이터까지 복사되면서 테이블 생성
 
+-- 항상 참이 되는 조건을 주면 모든 데이터를 복사하면서 테이블 생성
+CREATE TABLE full_member
+AS
+SELECT m.*
+  FROM member m
+ WHERE 1 = 1
+;
+-- Table FULL_MEMBER이(가) 생성되었습니다.
+-- full_member 삭제
+DROP TABLE full_member;
+CREATE TABLE full_member
+AS
+SELECT m.*
+  FROM member m
+  -- WHERE 조건절을 생략하면
+  -- 항상 참인 결과와 동일하므로 모든 데이터가 복사되며 새 테이블 생성
+;  
 
 
 
