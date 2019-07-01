@@ -288,11 +288,11 @@ GENDER               VARCHAR2(1)
 /*
 -- member 테이블에 데이터 추가
 */
-INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M001', '박성협', '9155', '수원시', '행정', '3', 'M')
-INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M002', '오진오', '1418', '군포시', '일어', '1', 'M')
-INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M003', '이병현', '0186', '천안시', '컴공', '3', 'M')
-INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M004', '김문정', '1392', '청주시', '일어', '3', 'F')
-INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M005', '송지환', '0322', '안양시', '제약', '3', 'F')
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M001', '박성협', '9155', '수원시', '행정', '3', 'M');
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M002', '오진오', '1418', '군포시', '일어', '1', 'M');
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M003', '이병현', '0186', '천안시', '컴공', '3', 'M');
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M004', '김문정', '1392', '청주시', '일어', '3', 'F');
+INSERT INTO "SCOTT"."MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, BIRTH_MONTH, GENDER) VALUES ('M005', '송지환', '0322', '안양시', '제약', '3', 'F');
 COMMIT;
 
 -- 3월생의 정보만 복사해서 새 테이블을 생성
@@ -326,6 +326,87 @@ SELECT m.*
 ;  
 
 
+----------------------------------
+-- 테이블 수정(ALTER) 주의사항
+
+-- 1) 컬럼에 데이터가 없을 때
+--  : 모든 변경에 자유로움 
+--    데이터 타입변경, 데이터 크기변경에 모두 자유로움
+
+-- 2) 컬럼에 데이터가 있을 때
+--  : 데이터가 소실되면 안되므로 변경에 제약이 있음
+--    타입 변경은 같은 타입내에서만 가능
+--    문자 타입간에 CHAR -> VARCHAR2 변경 가능
+
+--    크기 변경은 동일 혹은 커지는 방향으로만 가능
+--    숫자 타입의 크기변경은 정밀도가 커지는 방향으로만 가능
+
+-- 예) MARCH_MEMBER 테이블에서 BIRTH_MONTH 컬럼의
+--     데이터 타입의 크기를 NUMBER(1) 로 줄이면
+ALTER TABLE MARCH_MEMBER MODIFY (BIRTH_MONTH NUMBER(1));
+/*
+ORA-01440: 정도 또는 자리수를 축소할 열은 비어 있어야 합니다
+01440. 00000 -  "column to be modified must be empty to decrease precision or scale"
+*/
+--     숫자 데이터의 정밀도가 증가하는 값으로 변경하면
+--     2 -> 10자리, 그중 소수점 2자리
+ALTER TABLE MARCH_MEMBER MODIFY (BIRTH_MONTH NUMBER(10, 2));
+-- Table MARCH_MEMBER이(가) 변경되었습니다.
+
+-- 숫자 데이터인 BIRTH_MONTH 컬럼을 문자 데이터로 변경
+ALTER TABLE MARCH_MEMBER MODIFY (BIRTH_MONTH VARCHAR2(1) );
+/*
+ORA-01439: 데이터 유형을 변경할 열은 비어 있어야 합니다
+01439. 00000 -  "column to be modified must be empty to change datatype"
+*/
+
+-- MARCH_MEMBER 테이블의 모든 행에 대해서
+-- BIRTH_MONTH 컬럼의 값을 NULL 데이터로 변경하는 명령
+UPDATE "SCOTT"."MARCH_MEMBER" 
+  SET BIRTH_MONTH = '' 
+;
+COMMIT;
+/*
+6개 행 이(가) 업데이트되었습니다.
+
+커밋 완료.
+*/
+-- 데이터가 없는 컬럼으로 변경 후 
+-- VARCHAR2(2) 문자컬럼으로 변경
+ALTER TABLE MARCH_MEMBER 
+MODIFY (BIRTH_MONTH VARCHAR2(2) )
+;
+-- Table MARCH_MEMBER이(가) 변경되었습니다.
+
+-- NUMBER(1) 숫자1자리 컬럼으로 변경
+ALTER TABLE MARCH_MEMBER
+MODIFY (BIRTH_MONTH NUMBER(1) )
+;
+-- Table MARCH_MEMBER이(가) 변경되었습니다.
+
+----------------------------------------------------------------
+-- 3) 기본 값(DEFAULT) 설정은 수정 이후 값부터 적용 됨.
+
+-- 예) 3월 생인 멤버만 복사한 MARCH_MEMBER 테이블을 생각해보자.
+--   : BIRTH_MONTH 컬럼의 값이 항상 3 으로 고정되어도 될 것 같다.
+
+-- a)
+-- MARCH_MEMBER 테이블에 
+-- BIRTH_MONTH 컬럼의 값이 없는 멤버 정보 1줄 추가
+INSERT INTO "SCOTT"."MARCH_MEMBER" (MEMBER_ID, MEMBER_NAME, PHONE, ADDRESS, MAJOR, GENDER) 
+VALUES ('M006', '함예은', '0437', '수원시', '컴공', 'F');
+COMMIT;
+
+-- b) a의 멤버 정보 추가 후 DEFAULT 설정 추가
+ALTER TABLE march_member 
+MODIFY (BIRTH_MONTH DEFAULT 3);
+-- Table MARCH_MEMBER이(가) 변경되었습니다.
+
+-- c) MARCH_MEMBER 테이블에 DEFAULT 설정 추가 후
+--    새 멤버를 추가
+INSERT INTO "SCOTT"."MARCH_MEMBER" (MEMBER_ID, MEMBER_NAME, ADDRESS, MAJOR, GENDER) 
+VALUES ('M007', '홍길동', '율도국', '도술', 'M');
+COMMIT;
 
 
 
