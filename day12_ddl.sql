@@ -408,6 +408,99 @@ INSERT INTO "SCOTT"."MARCH_MEMBER" (MEMBER_ID, MEMBER_NAME, ADDRESS, MAJOR, GEND
 VALUES ('M007', '홍길동', '율도국', '도술', 'M');
 COMMIT;
 
+----------------------------------------------------
+-- 테이블 무결성 제약 조건 처리방법 4가지
+
+/*
+  MAIN_TABLE
+  ---------------------------------------------
+  ID        VARCHAR2(10)    PRIMARY KEY
+  NICKNAME  VARCHAR2(30)    UNIQUE
+  REG_DATE  DATE            DEFAULT SYSDATE
+  GENDER    VARCHAR2(1)     CHECK (GENDER IN ('M', 'F'))
+  MESSAGE   VARCHAR2(300)   
+  ---------------------------------------------
+  
+  SUB_TABLE
+  ---------------------------------------------
+  ID         VARCHAR2(10)    REFERENCES MAIN_TABLE(ID)  
+                            (FK FROM MAIN_TABLE.ID )
+  HOBBY      VARCHAR2(200)   
+  BIRTH_YEAR NUMBER(4)
+  ---------------------------------------------
+*/
+---- 1. 컬럼 정의할 때, 제약 조건 이름 없이 바로 선언
+;
+DROP TABLE MAIN_TABLE1;
+CREATE TABLE MAIN_TABLE1
+(  ID        VARCHAR2(10)    PRIMARY KEY
+ , NICKNAME  VARCHAR2(30)    UNIQUE
+ , REG_DATE  DATE            DEFAULT SYSDATE
+ , GENDER    VARCHAR2(1)     CHECK (GENDER IN ('M', 'F'))
+ , MESSAGE   VARCHAR2(300)
+);
+-- Table MAIN_TABLE1이(가) 생성되었습니다.
+
+DROP TABLE SUB_TABLE1;
+CREATE TABLE SUB_TABLE1
+(  ID         VARCHAR2(10)   REFERENCES MAIN_TABLE1(ID)
+ , HOBBY      VARCHAR2(200)
+ , BIRTH_YEAR NUMBER(4)
+);
+-- Table SUB_TABLE1이(가) 생성되었습니다.
+
+---- 2. 컬럼 정의할 때, 제약 조건 이름을 주며 선언
+DROP TABLE MAIN_TABLE2;
+CREATE TABLE MAIN_TABLE2
+(  ID        VARCHAR2(10)    CONSTRAINT PK_MAIN     PRIMARY KEY
+ , NICKNAME  VARCHAR2(30)    CONSTRAINT UQ_NICKNAME UNIQUE
+ , REG_DATE  DATE            DEFAULT SYSDATE
+ , GENDER    VARCHAR2(1)     CONSTRAINT CK_GENDER   CHECK (GENDER IN ('M', 'F'))
+ , MESSAGE   VARCHAR2(300)
+);
+-- Table MAIN_TABLE2이(가) 생성되었습니다.
+
+DROP TABLE SUB_TABLE2;
+CREATE TABLE SUB_TABLE2
+(  ID         VARCHAR2(10)   CONSTRAINT FK_SUB REFERENCES MAIN_TABLE2(ID)
+ , HOBBY      VARCHAR2(200)
+ , BIRTH_YEAR NUMBER(4)
+);
+-- Table SUB_TABLE2이(가) 생성되었습니다.
+
+-- MAIN_TABLE1, MAIN_TABLE2 의 제약조건을 비교
+
+-- 3. 컬럼 정의 후 제약 조건 따로 선언
+DROP TABLE MAIN_TABLE3;
+CREATE TABLE MAIN_TABLE3
+(  ID        VARCHAR2(10)    
+ , NICKNAME  VARCHAR2(30)    
+ , REG_DATE  DATE            DEFAULT SYSDATE
+ , GENDER    VARCHAR2(1)     
+ , MESSAGE   VARCHAR2(300)
+ , CONSTRAINT PK_MAIN3     PRIMARY KEY (ID)
+ , CONSTRAINT UQ_NICKNAME3 UNIQUE (NICKNAME)
+ , CONSTRAINT CK_GENDER3   CHECK  (GENDER IN ('M', 'F'))
+);
+-- Table MAIN_TABLE3이(가) 생성되었습니다.
+
+DROP TABLE SUB_TABLE3;
+CREATE TABLE SUB_TABLE3
+(  ID         VARCHAR2(10)    
+ , HOBBY      VARCHAR2(200)
+ , BIRTH_YEAR NUMBER(4)
+ , CONSTRAINT FK_SUB3 FOREIGN KEY(ID) REFERENCES MAIN_TABLE3(ID)
+ -- SUB_TABLE3 의 경우 PRIMARY KEY 를 ID, BIRTH_YEAR 의 복합키로 생성
+ -- 복합키로 PK를 삼으려는 경우는 반드시 제약조건 추가로만 생성가능
+ , CONSTRAINT PK_SUB3 PRIMARY KEY (ID, BIRTH_YEAR)
+);
+-- Table SUB_TABLE3이(가) 생성되었습니다.
+
+
+
+
+
+
 
 
 
