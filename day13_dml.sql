@@ -696,14 +696,26 @@ UPDATE member m
 -- 1) PHONE 컬럼이 NULL 인 사람들은
 --    일괄적으로 '0000' 으로 업데이트 하시오.
 --    : PK 로 걸 필요 없는 구문
+UPDATE member m
+   SET m.phone = '0000'
+ WHERE m.phone IS NULL
+; 
 
 -- 2)  M001 멤버의 전공을
 --     NULL 값으로 업데이트
 --    : PK 로 걸어서 수정해야 하는 구문
+UPDATE member m
+   SET m.major = NULL
+ WHERE m.memeber_id = 'M001'
+; 
 
 -- 3) ADDRESS 컬럼이 NULL 인 사람들은
 --    일괄적으로 '아산시' 로 업데이트
 --    : PK 로 걸 필요 없는 구문 
+UPDATE member m
+   SET m.address = '아산시'
+ WHERE m.address IS NULL
+; 
 
 -- 4) M009 멤버의 NULL 데이터를
 --    모두 업데이트
@@ -711,7 +723,12 @@ UPDATE member m
 --    ADDRESS : 천안시
 --    GENDER : M
 --    : PK 로 걸어서 수정해야 하는 구문
-
+UPDATE member m
+   SET m.phone = '3581'
+     , m.address = '천안시'
+     , m.gender = 'M'
+ WHERE m.member_id = 'M009'
+; 
 
 
 
