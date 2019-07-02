@@ -333,3 +333,283 @@ VALUES ('M006', '홍길동', '0001', sysdate, '율도국', '도술', 5, 'M')
 ;
 COMMIT;
 
+
+--- 2. INTO 절에 컬럼 이름을 명시한 경우의 데이터 추가
+--      : VALUES 절에 INTO 의 순서대로 
+--        값의 타입, 갯수를 맞추어서 작성
+INSERT INTO MEMBER (member_id, member_name)
+VALUES ('M007', '김지원')
+;
+COMMIT;
+/*
+1 행 이(가) 삽입되었습니다.
+커밋 완료.
+*/
+INSERT INTO MEMBER (member_id, member_name, gender)
+VALUES ('M008', '김지우', 'M')
+;
+COMMIT;
+/*
+1 행 이(가) 삽입되었습니다.
+커밋 완료.
+
+: 결과로 member_id, member_name, reg_date, gender
+  컬럼들에 값이 들어간 것 확인
+*/
+
+-- 테이블 정의 순서와 상관없이 
+-- INTO 절에 컬럼을 나열할 수 있다.
+INSERT INTO MEMBER (birth_month, member_name, member_id)
+VALUES (7, '유현동', 'M009')
+;
+COMMIT;
+/*
+1 행 이(가) 삽입되었습니다.
+커밋 완료.
+*/
+
+
+-- INTO 절의 컬럼 갯수와 VALUES 절의 값의 개수 불일치
+INSERT INTO MEMBER (member_id, member_name)
+VALUES ('M010', '허균', 'M')
+;
+/*
+SQL 오류: ORA-00913: 값의 수가 너무 많습니다
+00913. 00000 -  "too many values"
+*/
+INSERT INTO MEMBER (member_id, member_name, gender)
+VALUES ('M010', '허균')
+;
+/*
+SQL 오류: ORA-00947: 값의 수가 충분하지 않습니다
+00947. 00000 -  "not enough values"
+*/
+
+
+-- INTO 절과 VALUES 절의 갯수는 같으나
+-- 값의 타입이 일치하지 않을 때
+-- 숫자 데이터 컬럼인 birth_month 에 '한양'이라는 문자를
+-- 추가하려 하는 시도
+INSERT INTO MEMBER (member_id, member_name, birth_month)
+VALUES ('M010', '허균', '한양')
+;
+-- ORA-01722: 수치가 부적합합니다
+
+
+-- 필수 입력 컬럼을 나열하지 않을 때
+-- member_id : PK, member_name : NOT NULL
+INSERT INTO MEMBER (birth_month, address, gender)
+VALUES (12, '서귀포시', 'F')
+;
+--ORA-01400: 
+-- NULL을 ("SCOTT"."MEMBER"."MEMBER_ID") 안에 삽입할 수 없습니다
+
+
+
+-----------------------------------------------------
+-- 다중 행 입력 : SUB-QUERY 를 사용하여 가능
+
+-- 구문구조
+INSERT INTO 테이블이름
+SELECT 문장; -- 서브쿼리
+
+/*
+CREATE TABLE 테이블이름
+AS
+SELECT 문장;
+ : 서브쿼리의 데이터를 복사하면서 새 테이블을 생성
+ 
+vs.
+
+INSERT INTO 테이블이름
+SELECT 문장;
+ : 이미 만들어진 테이블에 데이터만 복사해서 추가
+
+*/
+
+-- new_member 삭제
+DROP TABLE new_member;
+-- Table NEW_MEMBER이(가) 삭제되었습니다.
+
+-- member 복사해서 테이블 생성
+CREATE TABLE new_member
+AS
+SELECT m.*
+  FROM member m
+ WHERE 1 = 2
+; 
+
+-- Table NEW_MEMBER이(가) 생성되었습니다.
+
+-- 다중 행 입력 서브쿼리로 new_member 테이블에 데이터 추가
+-- 이름 가운데 글자가 '지'인 사람들의 정보를 추가
+INSERT INTO new_member
+SELECT m.*
+  FROM member m
+ WHERE m.member_name LIKE '_지_'
+;
+COMMIT;
+/*
+3개 행 이(가) 삽입되었습니다.
+커밋 완료.
+*/
+
+
+-- 컬럼을 명시한 다중행 입력
+INSERT INTO new_member (member_id, member_name, phone)
+SELECT m.member_id
+     , m.member_name
+     , m.phone
+  FROM member m
+ WHERE m.member_id < 'M004'  
+;  
+COMMIT;
+
+/*
+3개 행 이(가) 삽입되었습니다.
+커밋 완료.
+*/
+
+-- new_member 에 추가된 행 모두 삭제
+DELETE new_member;
+COMMIT;
+
+-- 멤버들의 출생 월 데이터 수정
+UPDATE "SCOTT"."MEMBER" 
+   SET BIRTH_MONTH = '1' 
+ WHERE MEMBER_ID = 'M002'
+;
+UPDATE "SCOTT"."MEMBER" 
+   SET BIRTH_MONTH = '2' 
+ WHERE MEMBER_ID = 'M007'
+; 
+UPDATE "SCOTT"."MEMBER" 
+   SET BIRTH_MONTH = '1' 
+ WHERE MEMBER_ID = 'M008'
+;
+COMMIT;
+----------------------------
+
+-- 문제) new_member 테이블에
+--       member 테이블로부터 데이터를 복사하여 다중행 입력을 하시오.
+--       단, member 테이블의 데이터에서 birth_month 가
+--       홀수달인 사람들만 조회하여 입력하시오.
+INSERT INTO new_member
+SELECT m.*
+  FROM member m
+ WHERE mod(m.birth_month, 2) = 1  
+;  
+COMMIT;
+-- 8개 행 이(가) 삽입되었습니다.
+-- 커밋 완료.
+
+
+--------------------------------------
+-- 2) UPDATE : 테이블의 행(레코드)을 수정
+--             WHERE 조건절의 조합에 따라서
+
+--             1행만 수정하거나 다중 행 수정이 가능
+--             다중 행이 수정되는 경우는 매우 주의가 필요!!
+
+-- UPDATE 구문 구조
+UPDATE 테이블이름
+   SET 컬럼1 = 값1
+     [,컬럼2 = 값2]
+     ....
+     [,컬럼n = 값n]
+[WHERE 조건]
+;
+
+-- 예) 홍길동의 이름을 수정시도
+UPDATE member m -- 테이블 별칭
+   SET m.member_name = '길동이'
+ WHERE m.member_id = 'M006' 
+    -- PK로 찾아야 정확히 홍길동 행을 찾아갈 수 있음
+; 
+COMMIT;
+/*
+1 행 이(가) 업데이트되었습니다.
+커밋 완료.
+*/
+
+-- 예) 김문정 멤버의 전화번호 뒷자리 업데이트
+--     초기에 INSERT 시 NULL 로 데이터를 받지 않은 경우
+--     후에 데이터 수정이 발생할 수 있다.
+--     이런 경우 UPDATE 구문으로 처리.
+
+UPDATE member m
+   SET m.phone = '1392'
+ WHERE m.member_id = 'M004'
+; 
+COMMIT;
+/*
+1 행 이(가) 업데이트되었습니다.
+커밋 완료.
+*/
+
+-- 예) 유현동(M009) 멤버의 전공을 수정
+-- 역문컨
+UPDATE member m
+   SET m.major = '역문컨'
+-- WHERE m.member_id = 'M009' -- 실수로 WHERE 누락
+; 
+/*
+9개 행 이(가) 업데이트되었습니다.
+: WHERE 조건절 누락때문에 모든 행에 대해서
+  major 컬럼이 모두 수정이 일어난 결과
+  
+  ==> DML 작업 실수, 
+      주의 점 : 그러나 UPDATE 구문 오류는 아니라는 점.
+*/
+-- 직전(마지막) COMMIT 작업 까지 되돌리는 ROLLBACK 명령으로
+-- 잘못된 업데이트 되돌리기
+
+ROLLBACK;
+-- 롤백 완료.
+-- M004 멤버의 전화번호를 업데이트 한 것이 마지막 커밋이므로
+-- 그 상태의 데이터로 복원
+
+-- 정확한 M009 멤버의 major 업데이트 구문
+UPDATE member m
+   SET m.major = '역문컨'
+ WHERE m.member_id = 'M009' -- 실수로 WHERE 누락
+; 
+-- 1 행 이(가) 업데이트되었습니다.
+COMMIT;
+-- 커밋 완료.
+
+-- 다중 컬럼 업데이트(2개 이상의 컬럼 한번에 업데이트)
+-- 예) 김지우(M008) 멤버의 전화번호, 주소, 전공을 한번에 업데이트
+
+-- SET 절에 업데이트 할 컬럼과 값을 나열
+UPDATE member m
+   SET m.phone = '4119'
+     , m.address = '아산시'
+     , m.major = '일어'
+ WHERE m.member_id = 'M008'
+; 
+-- 1 행 이(가) 업데이트되었습니다.
+COMMIT;
+-- 커밋 완료.
+
+-- 예) '안양시' 에 사는 '송지환' 멤버의 GENDER 값을 수정
+--     WHERE 조건에 주소를 비교하는 구문을 쓰는 경우
+UPDATE member m
+   SET m.gender = 'M'
+ WHERE m.address = '안양시'
+-- WHERE 조건절 누락(X), WHERE 조건절 문법 오류(X) 
+; 
+-- 1 행 이(가) 업데이트되었습니다.
+ROLLBACK;
+-- 롤백 완료.
+-- 위의 실행 결과는 얼핏 정상작동한 것 처럼 보이지만
+-- 데이터가 다양해지면 오작동의 여지가 있는 구문이다.
+-- 따라서 UPDATE 작성시에는 WHERE 조건절 작성시
+-- 주의를 기울여야 함.
+
+-- 1행을 수정하는 목적이라면 반드시 PK 컬럼을 비교해야 한다.
+-- PK 컬럼은 전체 행에서 유일하고
+--    NOT NULL 이 보장되는 컬럼이므로
+--    반드시 그 행을 찾을 수 있는 값이기 때문에, PK 사용이 권장됨.
+
+
