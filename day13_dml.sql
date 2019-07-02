@@ -710,7 +710,7 @@ UPDATE member m
 --    PHONE : 3581
 --    ADDRESS : 천안시
 --    GENDER : M
-
+--    : PK 로 걸어서 수정해야 하는 구문
 
 
 
