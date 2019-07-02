@@ -500,6 +500,7 @@ CREATE TABLE SUB_TABLE3
 -- 추가 과제 
 -- 실습 10)
 
+
 /* 세 개의 테이블을 생성하는 구문을 작성
    3번 방식으로 작성
  ------------------------------------------  
@@ -520,21 +521,160 @@ CREATE TABLE SUB_TABLE3
  GAME_CODE  NUMBER(2)     FK 설정, FK 이름 : FK_GAME_CODE
                           GAME 테이블의 GAME_CODE 컬럼을 참조하도록 설정
  ------------------------------------------
- 
+ */
 
+-- 4. 테이블 정의 후 테이블 수정(ALTER TABLE)로 제약조건 추가
+
+-- MAIN_TABLE4 가 이미 존재하면 삭제
+DROP TABLE MAIN_TABLE4;
+
+-- 1) MAIN_TABLE4 정의 구문
+CREATE TABLE MAIN_TABLE4
+(  ID        VARCHAR2(10)    
+ , NICKNAME  VARCHAR2(30)    
+ , REG_DATE  DATE            DEFAULT SYSDATE
+ , GENDER    VARCHAR2(1)     
+ , MESSAGE   VARCHAR2(300)
+);
+-- Table MAIN_TABLE4이(가) 생성되었습니다.
+
+-- 2) 제약조건 추가 구문
+ALTER TABLE MAIN_TABLE4 ADD
+(  CONSTRAINT PK_MAIN4     PRIMARY KEY (ID)
+ , CONSTRAINT UQ_NICKNAME4 UNIQUE (NICKNAME)
+ , CONSTRAINT CK_GENDER4   CHECK  (GENDER IN ('M', 'F'))
+);
+-- Table MAIN_TABLE4이(가) 변경되었습니다.
+
+-- SUB_TABLE4 가 존재하면 삭제
+DROP TABLE SUB_TABLE4;
+
+-- 3) SUB_TABLE4 정의 구문
+CREATE TABLE SUB_TABLE4
+(  ID         VARCHAR2(10)    
+ , HOBBY      VARCHAR2(200)
+ , BIRTH_YEAR NUMBER(4)
+);
+-- Table SUB_TABLE4이(가) 생성되었습니다.
+
+-- 4) SUB_TABLE4 에 제약조건 추가
+ALTER TABLE SUB_TABLE4 ADD
+(  CONSTRAINT FK_SUB4 FOREIGN KEY(ID) REFERENCES MAIN_TABLE4(ID)
+ , CONSTRAINT PK_SUB4 PRIMARY KEY (ID, BIRTH_YEAR)
+);
+-- Table SUB_TABLE4이(가) 변경되었습니다.
+
+-- 시스템 카탈로그 : user_constraints 에서 
+-- 생성된 제약조건 확인
+
+SELECT c.table_name
+     , c.constraint_name
+     , c.constraint_type
+  FROM user_constraints c
+ WHERE c.table_name LIKE 'MAIN_TABLE%'  
+    OR c.table_name LIKE 'SUB_TABLE%'
+ ORDER BY c.table_name    
+;  
+
+
+/*
+TABLE_NAME, CONSTRAINT_NAME, CONSTRAINT_TYPE
+---------------------------------------------
+MAIN_TABLE1	SYS_C007601	    C (=CHECK)
+MAIN_TABLE1	SYS_C007602	    P (=PRIMARY KEY)
+MAIN_TABLE1	SYS_C007603	    U (=UNIQUE)
+MAIN_TABLE2	UQ_NICKNAME	    U
+MAIN_TABLE2	CK_GENDER	    C
+MAIN_TABLE2	PK_MAIN	        P
+MAIN_TABLE3	CK_GENDER3	    C
+MAIN_TABLE3	UQ_NICKNAME3	U
+MAIN_TABLE3	PK_MAIN3	    P
+MAIN_TABLE4	CK_GENDER4	    C
+MAIN_TABLE4	PK_MAIN4	    P
+MAIN_TABLE4	UQ_NICKNAME4	U
+SUB_TABLE1	SYS_C007604	    R (=REFERENCE ==> FOREIGN KEY)
+SUB_TABLE2	FK_SUB	        R
+SUB_TABLE3	FK_SUB3	        R
+SUB_TABLE3	PK_SUB3	        P
+SUB_TABLE4	FK_SUB4	        R
+SUB_TABLE4	PK_SUB4	        P
 */
 
+-- 테이블 이름의 변경 : RENAME
+-- 예) MARCH_MEMBER ====> MEMBER_OF_MARCH
+RENAME MARCH_MEMBER TO MEMBER_OF_MARCH;
+-- 테이블 이름이 변경되었습니다.
+-- 접속에 가서 테이블 이름 변경 확인
+
+RENAME MEMBER_OF_MARCH TO MARCH_MEMBER;
+-- 테이블 이름이 변경되었습니다.
 
 
+--- 테이블 삭제 : DROP 
+-- 두 테이블 사이에 REFERECES (FOREIGN KEY) 관계가 있을 때의 삭제
+
+-- 예) MAIN_TABLE1 의 경우 SUB_TABLE1 에 의해 ID 컬럼이 참조되고 있는 상태
+
+-- 1) MAIN_TABLE1 삭제 구문
+DROP TABLE MAIN_TABLE1;
+/*
+ORA-02449: 외래 키에 의해 참조되는 고유/기본 키가 테이블에 있습니다
+02449. 00000 -  "unique/primary keys in table referenced by foreign keys"
+*/
+-- SUB_TABLE1 이 MAIN_TABLE1 의 ID 컬럼을 참조하고 있기 때문에
+-- 테이블 삭제시 순서가 필요하다.
+
+-- 2) SUB_TABLE1 먼저 삭제 후 MAIN_TABLE1 삭제
+DROP TABLE SUB_TABLE1;
+-- Table SUB_TABLE1이(가) 삭제되었습니다.
+DROP TABLE MAIN_TABLE1;
+-- Table MAIN_TABLE1이(가) 삭제되었습니다.
 
 
+-- 3) 참조 관계에 상관없이 관계를 끊으면서 삭제
+/*
+MAIN_TABLE2	CK_GENDER	C
+MAIN_TABLE2	PK_MAIN	    P
+MAIN_TABLE2	UQ_NICKNAME	U
+SUB_TABLE2	FK_SUB	    R
+*/
+DROP TABLE MAIN_TABLE2 CASCADE CONSTRAINT;
+-- Table MAIN_TABLE2이(가) 삭제되었습니다.
 
+SELECT c.table_name
+     , c.constraint_name
+     , c.constraint_type
+  FROM user_constraints c
+ WHERE c.table_name = 'MAIN_TABLE2'  
+    OR c.table_name = 'SUB_TABLE2'
+ ORDER BY c.table_name    
+;  
+-- CASCADE 옵션으로 테이블 삭제하면
+-- 위의 쿼리 결과 : 인출된 모든 행 : 0 이 된다.
+-- 즉, 제약조건을 모두 삭제하며 테이블을 DROP 함
+-- 특히 이 결과에서 SUB_TABLE2 에 있던 R 제약조건이 같이 사라졌음을 확인.
 
+-- SUB_TABLE3 을 DROP 한 뒤, user_constraints 에서 관련 행이 사라짐을 확인.
+DROP TABLE SUB_TABLE3;
+-- Table SUB_TABLE3이(가) 삭제되었습니다.
 
-
-
-
-
+SELECT c.table_name
+     , c.constraint_name
+     , c.constraint_type
+  FROM user_constraints c
+ WHERE c.table_name = 'MAIN_TABLE3'  
+    OR c.table_name = 'SUB_TABLE3'
+ ORDER BY c.table_name    
+;  
+/*
+TABLE_NAME, CONSTRAINT_NAME, CONSTRAINT_TYPE
+------------------------------------------------
+MAIN_TABLE3	CK_GENDER3	    C
+MAIN_TABLE3	UQ_NICKNAME3	U
+MAIN_TABLE3	PK_MAIN3	    P
+*/
+-- SUB_TABLE3 을 DROP 해도 MAIN_TABLE3 의 제약조건에는 
+-- 영향을 미치지 않음을 확인.
 
 
 
