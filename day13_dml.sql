@@ -613,3 +613,108 @@ ROLLBACK;
 --    반드시 그 행을 찾을 수 있는 값이기 때문에, PK 사용이 권장됨.
 
 
+-- UPDATE 구문에 SELECT 서브쿼리를 사용
+-- 예) 김지우(M008) 멤버의 major 를
+--     오진오(M002) 멤버의 major 로 수정
+
+-- 1) M008 의 major 를 구하는 SELECT
+SELECT m.major
+  FROM member m
+ WHERE m.member_id = 'M008'
+; 
+
+-- 2) M002 멤버의 major 를 수정하는 UPDATE 구문 작성
+UPDATE member m
+   SET m.major = ?
+ WHERE m.member_id = 'M002'
+;
+
+-- 3) (1) 의 결과를 (2) UPDATE 구문에 적용
+UPDATE member m
+   SET m.major = (SELECT m.major
+                    FROM member m
+                   WHERE m.member_id = 'M008')
+ WHERE m.member_id = 'M002'
+;
+-- 1 행 이(가) 업데이트되었습니다.
+COMMIT;
+-- 커밋 완료.
+
+-- 만약 SET 절에 사용하는 서브쿼리의 결과가
+-- 정확하게 1행 1열의 1개의 값이 아닌경우 구문 오류
+UPDATE member m
+   SET m.major = (SELECT m.major
+                    FROM member m)
+ WHERE m.member_id = 'M002'
+;
+-- ORA-01427: 단일 행 하위 질의에 2개 이상의 행이 리턴되었습니다.
+
+UPDATE member m
+   SET m.major = (SELECT m.member_id
+                       , m.major
+                    FROM member m
+                   WHERE m.member_id = 'M008')
+ WHERE m.member_id = 'M002'
+;
+/*
+SQL 오류: ORA-00913: 값의 수가 너무 많습니다
+00913. 00000 -  "too many values"
+*/
+
+-- UPDATE 시 제약조건 위반하는 경우
+-- 예) M001 의 member_id 수정을 시도
+--     : PK 컬럼값을 중복 값으로 수정하는 경우
+UPDATE member m
+   SET m.member_id = 'M002'
+ WHERE m.member_id = 'M001'
+; 
+-- ORA-00001: 무결성 제약 조건
+-- (SCOTT.PK_MEMBER)에 위배됩니다
+
+-- 예) NOT NULL 인 member_name 에 NULL 데이터로
+--     업데이트를 시도하는 경우
+UPDATE member m
+   SET m.member_name = NULL
+ WHERE m.member_id = 'M001'
+; 
+-- ORA-01407: NULL로 
+-- ("SCOTT"."MEMBER"."MEMBER_NAME")을 
+-- 업데이트할 수 없습니다
+
+-- 예) M001 데이터에 대해서
+--     birth_month 를 -1 로 수정시도
+UPDATE member m
+   SET m.birth_month = -1
+ WHERE m.member_id = 'M001'
+; 
+-- ORA-02290: 체크 제약조건(SCOTT.CK_BIRTH)이 
+-- 위배되었습니다
+
+--------------------------------------------------
+-- 수업중 실습
+
+-- 1) PHONE 컬럼이 NULL 인 사람들은
+--    일괄적으로 '0000' 으로 업데이트 하시오.
+--    : PK 로 걸 필요 없는 구문
+
+-- 2)  M001 멤버의 전공을
+--     NULL 값으로 업데이트
+--    : PK 로 걸어서 수정해야 하는 구문
+
+-- 3) ADDRESS 컬럼이 NULL 인 사람들은
+--    일괄적으로 '아산시' 로 업데이트
+--    : PK 로 걸 필요 없는 구문 
+
+-- 4) M009 멤버의 NULL 데이터를
+--    모두 업데이트
+--    PHONE : 3581
+--    ADDRESS : 천안시
+--    GENDER : M
+
+
+
+
+
+
+
+
