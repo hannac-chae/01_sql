@@ -343,8 +343,88 @@ VALUES ('M' || LPAD(SEQ_NEW_MEMBER_ID.NEXTVAL, 3, 0)
 ; 
 COMMIT;
 
+------------------------------------------------------------------
+-- INDEX : 데이터의 검색(조회)시 일정한 검색 속도 보장을 위해
+--         DBMS 가 관리하는 객체
 
 
+-- 1. user_indexes 테이블에서 이미 존재하는 INDEX 조회
+SELECT i.index_name
+     , i.index_type
+     , i.table_name
+     , i.include_column
+  FROM user_indexes i
+;  
+
+/*
+PK_DEPT	        NORMAL	DEPT
+PK_EMP	        NORMAL	EMP
+PK_GAME	        NORMAL	GAME
+PK_MAIN3	    NORMAL	MAIN_TABLE3
+UQ_NICKNAME3	NORMAL	MAIN_TABLE3
+PK_MAIN4	    NORMAL	MAIN_TABLE4
+UQ_NICKNAME4	NORMAL	MAIN_TABLE4
+PK_MEMBER	    NORMAL	MEMBER
+PK_SUB4	        NORMAL	SUB_TABLE4
+*/
+
+-- 2. 테이블의 주키(PRIMARY KEY) 컬럼에 대해서는 DBMS가
+--    자동으로 인덱스 생성함을 알 수 있음.
+--    UNIQUE 에 대해서도 인덱스를 자동으로 생성함.
+--    한 번 인덱스가 생성된 컬럼에 대해서는 중복 생성 불가능
+
+-- 예) MEMBER 테이블의 MEMBER_ID 컬럼에 대해 인덱스 생성 시도
+CREATE INDEX idx_member_id
+ON member (member_id)
+;
+/*
+ORA-01408: 열 목록에는 이미 인덱스가 작성되어 있습니다
+01408. 00000 -  "such column list already indexed"
+
+ ==> PK_MEMBER 라는 이름과 다른 IDX_MEMBER_ID 로 생성 시도해도
+     같은 컬럼에 대해서는 인덱스가 두 개 생성되지 않음.
+*/
+
+-- 3. 복사 테이블 new_member 에는 PK 가 없기때문에 인덱스도 없는 상태
+-- (1) new_member 의 member_id 컬럼에 인덱스 생성
+CREATE INDEX idx_new_member_id
+ON new_member (member_id)
+;
+
+-- Index IDX_NEW_MEMBER_ID이(가) 생성되었습니다.
+
+-- 인덱스 생성 확인 후 DROP
+DROP INDEX idx_new_member_id;
+-- Index IDX_NEW_MEMBER_ID이(가) 삭제되었습니다.
+
+-- DESC 정렬로 생성
+CREATE INDEX idx_new_member_id
+ON new_member (member_id DESC)
+;
+-- Index IDX_NEW_MEMBER_ID이(가) 생성되었습니다.
+
+-- DESC 인덱스 확인 후 DROP
+DROP INDEX idx_new_member_id;
+-- Index IDX_NEW_MEMBER_ID이(가) 삭제되었습니다.
+
+-- 인덱스 대상 컬럼의 값이 UNIQUE 함이 확실하다면
+-- UNIQUE INDEX 로 생성가능
+CREATE UNIQUE INDEX idx_new_member_id
+ON new_member (member_id DESC)
+;
+--INDEX IDX_NEW_MEMBER_ID이(가) 생성되었습니다.
+
+
+SELECT i.index_name
+     , i.index_type
+     , i.table_name
+     , i.include_column
+  FROM user_indexes i
+;  
+
+-- INDEX 가 SELECT 에 사용될 때
+-- 빠른 검색을 위해서 명시적으로 SELECT 에 사용하는 경우 존재
+-- HINT 절을 SELECT 에 사용한다.
 
 
 
