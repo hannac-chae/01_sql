@@ -432,6 +432,3 @@ SELECT i.index_name
 
 
 
-
-
-
