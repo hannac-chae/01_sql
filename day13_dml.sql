@@ -706,7 +706,7 @@ UPDATE member m
 --    : PK 로 걸어서 수정해야 하는 구문
 UPDATE member m
    SET m.major = NULL
- WHERE m.memeber_id = 'M001'
+ WHERE m.member_id = 'M001'
 ; 
 
 -- 3) ADDRESS 컬럼이 NULL 인 사람들은
@@ -730,7 +730,7 @@ UPDATE member m
  WHERE m.member_id = 'M009'
 ; 
 
-
+COMMIT;
 
 
 
